@@ -7,8 +7,8 @@ import {
   ClientRequest,
   IncomingMessage,
   request as requestHttp,
-  RequestOptions
   } from 'http';
+import { RequestOptions } from 'https';
 import { createGunzip, createInflate } from 'zlib';
 import { HttpVerb } from './HttpVerb';
 import { ICache } from './ICache';
@@ -18,6 +18,7 @@ import { PassThrough } from 'stream';
 import { request as requestHttps } from 'https';
 import Response = require('http-response-object');
 import {URL} from 'url';
+import fs = require('fs');
 
 const caseless = require('caseless');
 const fileCache = new FileCache(__dirname + '/cache');
@@ -27,6 +28,8 @@ function requestProtocol(protocol: string, options: RequestOptions, callback?: (
   if (protocol === 'http') {
     return requestHttp(options, callback);
   } else if (protocol === 'https') {
+    const nodeExtraCerts = process.env['NODE_EXTRA_CA_CERTS'];
+    options = nodeExtraCerts ? {...options, ca: fs.readFileSync(nodeExtraCerts)} : options;
     return requestHttps(options, callback);
   }
   throw new Error('Unsupported protocol ' + protocol);
